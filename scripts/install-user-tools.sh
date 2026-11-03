@@ -39,12 +39,8 @@ curl -fsSL https://chatgpt.com/codex/install.sh | sh
 mise reshim
 hash -r
 echo 'Installing/updating Vite+...'
+curl -fsSL https://vite.plus | bash
 export PATH="$HOME/.vite-plus/bin:$PATH"
-if command -v vp >/dev/null 2>&1; then
-  vp upgrade
-else
-  curl -fsSL https://vite.plus | bash
-fi
 echo 'Installing/updating Claude Code...'
 curl -fsSL https://claude.ai/install.sh | bash -s latest
 echo 'Installing/updating T3 Code...'
