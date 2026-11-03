@@ -1,0 +1,41 @@
+# Runs scripts/install-user-tools.sh as dev. Log: ~/.local/state/t3-remote/setup.log
+---
+- name: 06 - Languages, coding agents, MCP servers, and skills
+  hosts: t3_remote
+  become: true
+  vars_files:
+    - ../vars.yml
+  tasks:
+    - name: Create the user mise configuration directory
+      ansible.builtin.file:
+        path: '{{ dev_home }}/.config/mise'
+        state: directory
+        owner: '{{ dev_user }}'
+        group: '{{ dev_user }}'
+        mode: '0755'
+    - name: Copy the editable mise configuration
+      ansible.builtin.copy:
+        src: ../mise.toml
+        dest: '{{ dev_home }}/.config/mise/config.toml'
+        owner: '{{ dev_user }}'
+        group: '{{ dev_user }}'
+        mode: '0644'
+        backup: true
+    - name: Copy the development tool helper
+      ansible.builtin.copy:
+        src: ../scripts/install-user-tools.sh
+        dest: '{{ dev_home }}/.local/bin/t3-remote-setup-tools'
+        owner: '{{ dev_user }}'
+        group: '{{ dev_user }}'
+        mode: '0755'
+    - name: Install user development tools through the helper
+      become_user: '{{ dev_user }}'
+      environment:
+        HOME: '{{ dev_home }}'
+      ansible.builtin.command:
+        argv:
+          - /bin/bash
+          - '{{ dev_home }}/.local/bin/t3-remote-setup-tools'
+      async: 1800
+      poll: 10
+      register: user_tools

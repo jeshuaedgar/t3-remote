@@ -1,0 +1,20 @@
+# Copies your Mac's Git name/email to dev. No keys or tokens are copied.
+---
+- name: 05 - Git identity and GitHub credential helper
+  hosts: t3_remote
+  become: true
+  become_user: '{{ dev_user }}'
+  vars_files: [../vars.yml]
+  environment:
+    HOME: '{{ dev_home }}'
+  tasks:
+    - name: Set Git identity and GitHub HTTPS helper
+      ansible.builtin.command:
+        argv: [git, config, --global, '{{ item.key }}', '{{ item.value }}']
+      loop:
+        - {key: user.name, value: "{{ lookup('pipe', 'git config --global user.name') }}"}
+        - {key: user.email, value: "{{ lookup('pipe', 'git config --global user.email') }}"}
+        - {key: 'credential.https://github.com.helper', value: '!{{ dev_home }}/.local/share/mise/shims/gh auth git-credential'}
+      loop_control:
+        label: '{{ item.key }}'
+      changed_when: false

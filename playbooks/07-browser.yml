@@ -1,0 +1,11 @@
+# Installs T3's browser AppArmor profile and libraries (needs root).
+---
+- name: 07 - T3 browser sandbox
+  hosts: t3_remote
+  become: true
+  vars_files: [../vars.yml]
+  tasks:
+    - name: Run T3's browser setup
+      ansible.builtin.command: '{{ dev_home }}/.local/bin/t3 browser setup --base-dir {{ dev_home }}/.t3'
+      environment:
+        PATH: '{{ dev_home }}/.local/bin:{{ dev_home }}/.local/share/mise/shims:{{ ansible_facts["env"]["PATH"] }}'

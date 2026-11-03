@@ -1,0 +1,11 @@
+# Normal provisioning. Each imported file can also be run independently.
+# SSH restriction is a separate, deliberate last step: playbooks/09-private-ssh.yml.
+---
+- import_playbook: playbooks/01-system.yml
+- import_playbook: playbooks/02-account.yml
+- import_playbook: playbooks/03-docker.yml
+- import_playbook: playbooks/04-tailscale.yml
+- import_playbook: playbooks/05-git.yml
+- import_playbook: playbooks/06-tools.yml
+- import_playbook: playbooks/07-browser.yml
+- import_playbook: playbooks/08-t3-service.yml

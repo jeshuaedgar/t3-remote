@@ -1,0 +1,53 @@
+# T3 as a systemd user service on 127.0.0.1:3773; reach it via SSH or Tailscale Serve.
+---
+- name: 08 - Persistent T3 service
+  hosts: t3_remote
+  become: true
+  vars_files: [../vars.yml]
+  tasks:
+    - name: Look up dev's UID
+      ansible.builtin.getent:
+        database: passwd
+        key: '{{ dev_user }}'
+    - name: Create the T3 home
+      ansible.builtin.file:
+        path: '{{ dev_home }}/.t3'
+        state: directory
+        owner: '{{ dev_user }}'
+        group: '{{ dev_user }}'
+        mode: '0750'
+    - name: Bind the server to loopback
+      ansible.builtin.lineinfile:
+        path: '{{ dev_home }}/.t3/service.env'
+        regexp: '^{{ item.key }}='
+        line: '{{ item.key }}={{ item.value }}'
+        create: true
+        owner: '{{ dev_user }}'
+        group: '{{ dev_user }}'
+        mode: '0600'
+      loop:
+        - {key: T3CODE_HOST, value: 127.0.0.1}
+        - {key: T3CODE_PORT, value: '3773'}
+      register: service_env
+    - name: Install, enable, and start the service
+      become_user: '{{ dev_user }}'
+      environment:
+        HOME: '{{ dev_home }}'
+        XDG_RUNTIME_DIR: '/run/user/{{ ansible_facts["getent_passwd"][dev_user][1] }}'
+        PATH: '{{ dev_home }}/.local/bin:{{ dev_home }}/.local/share/mise/shims:/usr/local/bin:/usr/bin:/bin'
+      block:
+        - name: Install the service with T3's CLI
+          ansible.builtin.command: t3 service install
+          args:
+            creates: '{{ dev_home }}/.config/systemd/user/t3code.service'
+        - name: Enable and start it
+          ansible.builtin.systemd_service:
+            name: t3code.service
+            scope: user
+            enabled: true
+            state: "{{ 'restarted' if service_env.changed else 'started' }}"
+    - name: Wait for T3 to answer
+      ansible.builtin.wait_for:
+        host: 127.0.0.1
+        port: 3773
+        timeout: 60

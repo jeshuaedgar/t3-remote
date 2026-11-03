@@ -1,0 +1,44 @@
+# The dev account has passwordless sudo, which is root-equivalent.
+---
+- name: 02 - Development account
+  hosts: t3_remote
+  become: true
+  vars_files: [../vars.yml]
+  tasks:
+    - name: Look up the initial SSH account
+      ansible.builtin.getent:
+        database: passwd
+        key: '{{ ssh_key_source_user }}'
+    - name: Create the development user
+      ansible.builtin.user:
+        name: '{{ dev_user }}'
+        shell: /bin/bash
+    - name: Create the SSH and bin directories
+      ansible.builtin.file:
+        path: '{{ dev_home }}/{{ item.path }}'
+        state: directory
+        owner: '{{ dev_user }}'
+        group: '{{ dev_user }}'
+        mode: '{{ item.mode }}'
+      loop:
+        - {path: .ssh, mode: '0700'}
+        - {path: .local/bin, mode: '0755'}
+    - name: Reuse the initial account's authorized keys (never overwrites)
+      ansible.builtin.copy:
+        src: "{{ ansible_facts['getent_passwd'][ssh_key_source_user][4] }}/.ssh/authorized_keys"
+        dest: '{{ dev_home }}/.ssh/authorized_keys'
+        remote_src: true
+        force: false
+        owner: '{{ dev_user }}'
+        group: '{{ dev_user }}'
+        mode: '0600'
+    - name: Allow passwordless sudo
+      ansible.builtin.copy:
+        content: "{{ dev_user }} ALL=(ALL) NOPASSWD: ALL\n"
+        dest: /etc/sudoers.d/90-t3-dev
+        mode: '0440'
+        validate: /usr/sbin/visudo -cf %s
+    - name: Keep user services alive after logout
+      ansible.builtin.command: loginctl enable-linger {{ dev_user }}
+      args:
+        creates: /var/lib/systemd/linger/{{ dev_user }}

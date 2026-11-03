@@ -1,0 +1,29 @@
+# Docker group membership is root-equivalent.
+---
+- name: 03 - Docker Engine and Compose
+  hosts: t3_remote
+  become: true
+  vars_files: [../vars.yml]
+  tasks:
+    - name: Add Docker's apt repository
+      ansible.builtin.deb822_repository:
+        name: docker
+        types: deb
+        uris: https://download.docker.com/linux/ubuntu
+        suites: noble
+        components: stable
+        signed_by: https://download.docker.com/linux/ubuntu/gpg
+    - name: Install Docker
+      ansible.builtin.apt:
+        name: [docker-ce, docker-ce-cli, containerd.io, docker-buildx-plugin, docker-compose-plugin]
+        update_cache: true
+    - name: Add dev to the docker group
+      ansible.builtin.user:
+        name: '{{ dev_user }}'
+        groups: docker
+        append: true
+    - name: Enable and start Docker
+      ansible.builtin.systemd_service:
+        name: docker
+        enabled: true
+        state: started

@@ -1,0 +1,27 @@
+# Installs Tailscale; joining your tailnet (sudo tailscale up) stays manual.
+---
+- name: 04 - Tailscale
+  hosts: t3_remote
+  become: true
+  vars_files: [../vars.yml]
+  tasks:
+    - name: Add Tailscale's apt repository
+      ansible.builtin.deb822_repository:
+        name: tailscale
+        types: deb
+        uris: https://pkgs.tailscale.com/stable/ubuntu
+        suites: noble
+        components: main
+        signed_by: https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg
+    - name: Install Tailscale
+      ansible.builtin.apt:
+        name: tailscale
+        update_cache: true
+    - name: Enable and start tailscaled
+      ansible.builtin.systemd_service:
+        name: tailscaled
+        enabled: true
+        state: started
+    - name: Let dev manage Tailscale Serve without sudo
+      ansible.builtin.command: tailscale set --operator={{ dev_user }}
+      changed_when: false

@@ -1,0 +1,47 @@
+# Stage 06 copies this file to ~/.config/mise/config.toml on the remote host.
+# Edit versions here to pin tools; latest follows upstream releases.
+[tools]
+
+# Languages and runtimes
+bun = "latest"
+deno = "latest"
+dotnet = "latest"
+go = "latest"
+java = "latest"
+node = "latest"
+python = "latest"
+ruby = "latest"
+rust = "latest"
+
+# Package managers
+"npm:pnpm" = { version = "latest", allow_builds = "pnpm" }
+uv = "latest"
+# Build tools and task runners
+cmake = "latest"
+gradle = "latest"
+just = "latest"
+maven = "latest"
+
+# Code analysis
+"npm:fallow" = "latest"
+"npm:knip" = "latest"
+ruff = "latest"
+shellcheck = "latest"
+
+# Development and deployment
+gh = "latest"
+"npm:@github/copilot" = { version = "latest", allow_builds = "@github/copilot" }
+"npm:@opencode/cli" = { version = "latest", allow_builds = "@opencode/cli" }
+"npm:@fission-ai/openspec" = "latest"
+"npm:shadcn" = "latest"
+"npm:wrangler" = { version = "latest", allow_builds = "esbuild,workerd" }
+
+# Browser automation and MCP servers
+"npm:@playwright/mcp" = "latest"
+"npm:@upstash/context7-mcp" = "latest"
+"npm:playwright" = "latest"
+
+# Shell utilities
+fd = "latest"
+fzf = "latest"
+yq = "latest"
